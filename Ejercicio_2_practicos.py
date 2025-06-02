@@ -3,6 +3,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 
 
 class analisis_predictivo:
@@ -147,66 +148,44 @@ class analisis_predictivo:
         plt.show()
 
     def graficar_circulo_correlaciones(self):
-        from sklearn.preprocessing import StandardScaler
+        X = np.array(self.X, dtype=float)
 
         scaler = StandardScaler()
-        X_std = scaler.fit_transform(self.X)
+        X_std = scaler.fit_transform(X)
+
+        # PCA con dos componentes
         pca = PCA(n_components=2)
         pca.fit(X_std)
 
         componentes = pca.components_.T
-        nombres = [f'V{i+1}' for i in range(self.X.shape[1])]
 
-        plt.figure(figsize=(8, 8))
-        plt.axhline(0, color='gray', lw=1)
-        plt.axvline(0, color='gray', lw=1)
+        nombres_variables = [f'Var{i+1}' for i in range(X.shape[1])]
+
+        fig, ax = plt.subplots(figsize=(6, 6))
+
+        circle = plt.Circle((0, 0), 1, color='blue', fill=False, linewidth=1)
+        ax.add_artist(circle)
 
         for i in range(componentes.shape[0]):
-            plt.arrow(0, 0, componentes[i, 0], componentes[i, 1],
-                    head_width=0.03, head_length=0.05, color='blue')
-            plt.text(componentes[i, 0]*1.1, componentes[i, 1]*1.1, nombres[i],
-                    color='black', ha='center', va='center')
+            ax.arrow(0, 0, componentes[i, 0], componentes[i, 1],
+                    head_width=0.03, head_length=0.05, fc='red', ec='red', alpha=0.6)
+            ax.text(componentes[i, 0]*1.1, componentes[i, 1]*1.1, nombres_variables[i],
+                    ha='center', va='center', fontsize=10)
 
-        circle = plt.Circle((0, 0), 1, color='gray', fill=False, linestyle='--')
-        plt.gca().add_artist(circle)
-
-        plt.xlabel('Componente principal 1')
-        plt.ylabel('Componente principal 2')
-        plt.title('Círculo de correlaciones')
-        plt.axis('equal')
-        plt.grid(True)
+        ax.set_xlim(-1.1, 1.1)
+        ax.set_ylim(-1.1, 1.1)
+        ax.axhline(0, color='gray', linewidth=0.5)
+        ax.axvline(0, color='gray', linewidth=0.5)
+        ax.set_xlabel('PC1')
+        ax.set_ylabel('PC2')
+        ax.set_title('Círculo de correlaciones')
+        ax.set_aspect('equal')
+        plt.grid(True, linestyle='--', linewidth=0.5, alpha=0.5)
+        plt.tight_layout()
         plt.show()
 
 
-    
-
-# Cargar el archivo con el separador correcto
-df = pd.read_csv("Ejemplo_AD.csv", sep=";", header=None)
-#print(df)
-
-# Eliminar columnas que no se usan, siendo la primera y la ultima que tiene NaN
-df = df.drop(df.columns[7], axis=1)
-df = df.drop(df.columns[0], axis=1)
-
-# Asignar nombres de columna
-df.columns = ['V1', 'V2', 'V3', 'V4', 'V5', 'Clase']
 
 
-X = df[['V1', 'V2', 'V3', 'V4', 'V5']].values
-y = df['Clase'].values
 
-modelo = analisis_predictivo(X, y)
-modelo.split_data()  # 20% para prueba
-
-pred_lda = modelo.predecir_lda()
-print("Predicciones LDA:", pred_lda)
-
-pred_qda = modelo.predecir_qda()
-print("Predicciones QDA:", pred_qda)
-
-pred_nb = modelo.predecir_naive_bayes()
-print("Predicciones Naive Bayes:", pred_nb)
-
-modelo.graficar_plano_principal()
-modelo.graficar_circulo_correlaciones()
 
