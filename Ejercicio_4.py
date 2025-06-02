@@ -2,65 +2,63 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import confusion_matrix
+#from sklearn.metrics import accuracy_score, confusion_matrix
 
-# Cargar los datos
-df = pd.read_csv("novatosNBA.csv", sep=",", header=0)
+def correr_ejer_4():
+    # Cargar los datos
+    df = pd.read_csv("novatosNBA.csv", sep=",", header=0)
 
+    # Eliminar columnas no numéricas o irrelevantes
+    df = df.drop(columns=['Unnamed: 0', 'Player', 'Team', 'Conf'])
 
-# Eliminar columnas que no sirven para los algoritmos
-df = df.drop(columns=['Unnamed: 0', 'Player', 'Team', 'Conf'])
+    # Dividir en variables predictoras y variable objetivo
+    X = df.iloc[:, :-1].values
+    y = df.iloc[:, -1].values
 
+    # Separar en entrenamiento y prueba
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+    # LDA
+    lda_model = LinearDiscriminantAnalysis()
+    lda_model.fit(X_train, y_train)
+    lda_pred = lda_model.predict(X_test)
 
-#Creación del testing y training
-X = df.iloc[:, :-1].values
-y = df.iloc[:, -1].values
+    # QDA
+    qda_model = QuadraticDiscriminantAnalysis()
+    qda_model.fit(X_train, y_train)
+    qda_pred = qda_model.predict(X_test)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    # Naive Bayes
+    naive_model = GaussianNB()
+    naive_model.fit(X_train, y_train)
+    naive_pred = naive_model.predict(X_test)
 
-
-#lda
-
-lda_model = LinearDiscriminantAnalysis()
-lda_model.fit(X_train, y_train)
-lda_pred = lda_model.predict(X_test)
-
-#qda
-#Notar que me da una advertencia de colinealidad porque la matriz de covarianza  casi no se puede invertir
-qda_model = QuadraticDiscriminantAnalysis()
-qda_model.fit(X_train, y_train)
-qda_pred = qda_model.predict(X_test)
-
-
-
-#Naive bayes
-
-naive_model = GaussianNB()
-naive_model.fit(X_train, y_train)
-naive_pred = naive_model.predict(X_test)
+    # Retornar predicciones y verdaderos
+    return y_test, lda_pred, qda_pred, naive_pred
 
 #------------------------------------------------------
-# Cálculo de presición
 
-## lda
-prescision_lda = accuracy_score(y_test, lda_pred)
-print("Precisión del LDA:", prescision_lda)
-matriz_lda = confusion_matrix(y_test, lda_pred)
-print("Matriz de Confusión LDA:")
-print(matriz_lda)
+from sklearn.metrics import precision_score
 
-##qda
-prescision_qda = accuracy_score(y_test, qda_pred)
-print("Precisión del QDA:", prescision_qda)
-matriz_qda = confusion_matrix(y_test, qda_pred)
-print("Matriz de Confusión QDA:")
-print( matriz_qda)
+def evaluar_metricas(nombre, y_true, y_pred):
+    precision_global = precision_score(y_true, y_pred, average='weighted')
+    error_global = 1 - precision_global
 
-##Naive bayes
-prescision_naive = accuracy_score(y_test, naive_pred)
-print("Precisión del Naive Bayes:", prescision_naive)
-matriz_naive = confusion_matrix(y_test, naive_pred)
-print("Matriz de Confusión Naive Bayes:")
-print( matriz_naive)
+    # Asumimos que la clase positiva es 1 y la negativa 0 (binario)
+    try:
+        pp = precision_score(y_true, y_pred, pos_label=1)
+    except:
+        pp = float('nan')
+
+    try:
+        pn = precision_score(y_true, y_pred, pos_label=0)
+    except:
+        pn = float('nan')
+
+    return {
+        "Modelo": nombre,
+        "Precisión Global": round(precision_global, 4),
+        "Error Global": round(error_global, 4),
+        "Precisión Positiva (PP)": round(pp, 4),
+        "Precisión Negativa (PN)": round(pn, 4)
+    }
