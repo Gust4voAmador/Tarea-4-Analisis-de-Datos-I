@@ -117,7 +117,7 @@ class analisis_predictivo:
 
     def predecir_naive_bayes(self):
         clases, medias, varianzas, priors = self.entrenar_naive_bayes() # Llamar lo entrenado
-        X = self.X_test #llamar fraccion para probar
+        X = self.X_test #llamar fraccion de la data para probar
         predicciones = []
 
         for x in X:
@@ -132,9 +132,11 @@ class analisis_predictivo:
         return np.array(predicciones)
     #----------------------------------------------------------
     def graficar_plano_principal(self):
+        # Reducir los datos a 2 componentes principales
         pca = PCA(n_components=2)
-        X_proyectado = pca.fit_transform(self.X)
+        X_proyectado = pca.fit_transform(self.X) #se transforman los datos a las dos nuevas dimensiones principales
 
+        # Graficarlo
         plt.figure(figsize=(8, 6))
         for clase in np.unique(self.y):
             indices = self.y == clase
